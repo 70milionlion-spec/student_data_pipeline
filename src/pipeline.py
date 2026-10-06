@@ -7,17 +7,13 @@ import pandas as pd
 from pymongo import MongoClient
 
 
-# ============================================================
 # MongoDB
-# ============================================================
 
 def connect_to_mongodb(
     uri: str,
     database_name: str
 ):
-    """
-    Connect to MongoDB and return the client and database.
-    """
+   
 
     logging.info("Connecting to MongoDB...")
 
@@ -37,9 +33,7 @@ def load_collection(
     database,
     collection_name: str
 ) -> list[dict]:
-    """
-    Load all documents from a MongoDB collection.
-    """
+   
 
     logging.info(
         f"Loading {collection_name} from MongoDB..."
@@ -49,8 +43,7 @@ def load_collection(
 
     documents = list(collection.find())
 
-    # Convert MongoDB ObjectId to string
-    # so that the documents can be saved as JSON.
+
     for document in documents:
 
         if "_id" in document:
@@ -64,20 +57,13 @@ def load_collection(
     return documents
 
 
-# ============================================================
 # JSON
-# ============================================================
 
 def save_raw_json(
     documents: list[dict],
     output_file: Path
 ) -> None:
-    """
-    Save raw MongoDB documents as JSON.
-
-    The raw documents are preserved exactly as received
-    from MongoDB, including invalid or incomplete documents.
-    """
+   
 
     output_file.parent.mkdir(
         parents=True,
@@ -104,9 +90,7 @@ def save_raw_json(
 def load_json_as_dataframe(
     input_file: Path
 ) -> pd.DataFrame:
-    """
-    Load JSON data into a pandas DataFrame.
-    """
+   
 
     if not input_file.exists():
 
@@ -131,26 +115,12 @@ def load_json_as_dataframe(
     return df
 
 
-# ============================================================
 # STUDENTS
-# ============================================================
 
 def flatten_students(
     df: pd.DataFrame
 ) -> pd.DataFrame:
-    """
-    Flatten nested MongoDB student documents.
-
-    Example:
-
-    address:
-        city
-        country
-
-    academic:
-        gpa
-        attendance
-    """
+    
 
     logging.info("Flattening student data...")
 
@@ -219,9 +189,7 @@ def flatten_students(
 def convert_student_data_types(
     df: pd.DataFrame
 ) -> pd.DataFrame:
-    """
-    Convert student columns to appropriate data types.
-    """
+   
 
     logging.info(
         "Converting student data types..."
@@ -251,32 +219,19 @@ def convert_student_data_types(
 def clean_students(
     df: pd.DataFrame
 ) -> pd.DataFrame:
-    """
-    Clean student data.
-
-    Important:
-    skills is a Python list, therefore we must NOT use
-    drop_duplicates() on the entire DataFrame because
-    lists are unhashable.
-
-    Instead, duplicates are detected using student_id.
-    """
+   
 
     logging.info("Cleaning student data...")
 
     df = df.copy()
 
-    # --------------------------------------------------------
     # Remove completely empty rows
-    # --------------------------------------------------------
 
     df = df.dropna(
         how="all"
     )
 
-    # --------------------------------------------------------
     # Check student_id
-    # --------------------------------------------------------
 
     if "student_id" in df.columns:
 
@@ -307,27 +262,15 @@ def clean_students(
             "is missing from student data."
         )
 
-    # --------------------------------------------------------
     # Remove duplicate students
-    # --------------------------------------------------------
-    #
-    # DO NOT use:
-    #
-    # df.drop_duplicates()
-    #
-    # because skills is a list.
-    #
-    # Instead use student_id only.
-    # --------------------------------------------------------
+
 
     df = df.drop_duplicates(
         subset=["student_id"],
         keep="first"
     )
 
-    # --------------------------------------------------------
     # Clean text columns
-    # --------------------------------------------------------
 
     text_columns = [
         "name",
@@ -346,9 +289,7 @@ def clean_students(
                 .str.title()
             )
 
-    # --------------------------------------------------------
     # Validate age range
-    # --------------------------------------------------------
 
     if "age" in df.columns:
 
@@ -365,9 +306,7 @@ def clean_students(
             "age"
         ] = pd.NA
 
-    # --------------------------------------------------------
     # Validate GPA range
-    # --------------------------------------------------------
 
     if "gpa" in df.columns:
 
@@ -384,9 +323,7 @@ def clean_students(
             "gpa"
         ] = pd.NA
 
-    # --------------------------------------------------------
     # Validate attendance range
-    # --------------------------------------------------------
 
     if "attendance" in df.columns:
 
@@ -403,9 +340,8 @@ def clean_students(
             "attendance"
         ] = pd.NA
 
-    # --------------------------------------------------------
+    
     # Fill numeric missing values with median
-    # --------------------------------------------------------
 
     numeric_columns = [
         "age",
@@ -431,13 +367,12 @@ def clean_students(
 
     return df
 
+#------------------------------------
 
 def validate_students(
     df: pd.DataFrame
 ) -> bool:
-    """
-    Validate cleaned student data.
-    """
+   
 
     logging.info(
         "Validating student data..."
@@ -453,9 +388,7 @@ def validate_students(
         "attendance"
     ]
 
-    # --------------------------------------------------------
     # Check DataFrame
-    # --------------------------------------------------------
 
     if df.empty:
 
@@ -463,9 +396,7 @@ def validate_students(
             "Student DataFrame is empty."
         )
 
-    # --------------------------------------------------------
     # Check required columns
-    # --------------------------------------------------------
 
     missing_columns = [
         column
@@ -480,9 +411,7 @@ def validate_students(
             f"{missing_columns}"
         )
 
-    # --------------------------------------------------------
     # Check student_id
-    # --------------------------------------------------------
 
     if df["student_id"].isna().any():
 
@@ -496,9 +425,7 @@ def validate_students(
             "Student data contains duplicate student_id."
         )
 
-    # --------------------------------------------------------
     # Check name
-    # --------------------------------------------------------
 
     if df["name"].isna().any():
 
@@ -506,9 +433,8 @@ def validate_students(
             "Student data contains missing names."
         )
 
-    # --------------------------------------------------------
+    
     # Check age
-    # --------------------------------------------------------
 
     if not df["age"].between(
         16,
@@ -520,9 +446,7 @@ def validate_students(
             "Student data contains invalid age values."
         )
 
-    # --------------------------------------------------------
     # Check GPA
-    # --------------------------------------------------------
 
     if not df["gpa"].between(
         0,
@@ -534,9 +458,7 @@ def validate_students(
             "Student data contains invalid GPA values."
         )
 
-    # --------------------------------------------------------
     # Check attendance
-    # --------------------------------------------------------
 
     if not df["attendance"].between(
         0,
@@ -555,9 +477,7 @@ def validate_students(
     return True
 
 
-# ============================================================
 # COURSES
-# ============================================================
 
 def clean_courses(
     df: pd.DataFrame
@@ -617,9 +537,7 @@ def clean_courses(
 def validate_courses(
     df: pd.DataFrame
 ) -> bool:
-    """
-    Validate cleaned course data.
-    """
+   
 
     logging.info(
         "Validating course data..."
@@ -630,9 +548,7 @@ def validate_courses(
         "name"
     ]
 
-    # --------------------------------------------------------
     # Check DataFrame
-    # --------------------------------------------------------
 
     if df.empty:
 
@@ -640,9 +556,7 @@ def validate_courses(
             "Course DataFrame is empty."
         )
 
-    # --------------------------------------------------------
     # Check required columns
-    # --------------------------------------------------------
 
     missing_columns = [
         column
@@ -657,9 +571,7 @@ def validate_courses(
             f"{missing_columns}"
         )
 
-    # --------------------------------------------------------
     # Check course_id
-    # --------------------------------------------------------
 
     if df["course_id"].isna().any():
 
@@ -673,9 +585,7 @@ def validate_courses(
             "Course data contains duplicate course_id."
         )
 
-    # --------------------------------------------------------
     # Check course name
-    # --------------------------------------------------------
 
     if df["name"].isna().any():
 
@@ -690,17 +600,13 @@ def validate_courses(
     return True
 
 
-# ============================================================
 # CSV
-# ============================================================
 
 def save_to_csv(
     df: pd.DataFrame,
     output_file: Path
 ) -> None:
-    """
-    Save DataFrame to CSV.
-    """
+   
 
     output_file.parent.mkdir(
         parents=True,
@@ -718,33 +624,22 @@ def save_to_csv(
     )
 
 
-# ============================================================
 # SQLITE
-# ============================================================
 
 def save_to_sqlite(
     df: pd.DataFrame,
     database_file: Path,
     table_name: str
 ) -> None:
-    """
-    Save DataFrame to SQLite database.
-
-    SQLite cannot store Python lists or dictionaries directly.
-    Therefore, lists and dictionaries are converted to JSON strings
-    before saving.
-    """
+    
 
     database_file.parent.mkdir(
         parents=True,
         exist_ok=True
     )
 
-    # Create a copy so that we do not modify
-    # the original DataFrame.
     sqlite_df = df.copy()
 
-    # Convert lists and dictionaries to JSON strings.
     for column in sqlite_df.columns:
 
         sqlite_df[column] = sqlite_df[column].apply(
@@ -773,17 +668,15 @@ def save_to_sqlite(
     )
 
 
-# ============================================================
+
 # DATA QUALITY REPORT
-# ============================================================
+
 
 def generate_quality_report(
     df: pd.DataFrame,
     dataset_name: str
 ) -> None:
-    """
-    Print a simple data quality report.
-    """
+    
 
     print()
     print("=" * 60)
@@ -818,6 +711,5 @@ def generate_quality_report(
     print()
 
 
-# ============================================================
+
 # END OF PIPELINE
-# ============================================================

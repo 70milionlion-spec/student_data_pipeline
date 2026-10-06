@@ -22,9 +22,7 @@ from src.pipeline import (
 )
 
 
-# ============================================================
 # Configuration
-# ============================================================
 
 MONGO_URI = "mongodb://127.0.0.1:27017/"
 
@@ -35,9 +33,7 @@ STUDENTS_COLLECTION = "students"
 COURSE_COLLECTION = "course"
 
 
-# ============================================================
 # Raw data
-# ============================================================
 
 STUDENTS_RAW_FILE = Path(
     "data/raw/students.json"
@@ -48,9 +44,7 @@ COURSES_RAW_FILE = Path(
 )
 
 
-# ============================================================
 # Processed data
-# ============================================================
 
 STUDENTS_OUTPUT = Path(
     "data/processed/students_ml_ready.csv"
@@ -61,18 +55,14 @@ COURSES_OUTPUT = Path(
 )
 
 
-# ============================================================
 # Database
-# ============================================================
 
 DATABASE_FILE = Path(
     "university_data.db"
 )
 
 
-# ============================================================
 # Logging
-# ============================================================
 
 LOG_FILE = Path(
     "logs/pipeline.log"
@@ -104,9 +94,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# ============================================================
 # Pipeline
-# ============================================================
 
 def run_pipeline():
 
@@ -118,10 +106,8 @@ def run_pipeline():
 
     try:
 
-        # ====================================================
         # STEP 1
         # Connect to MongoDB
-        # ====================================================
 
         logger.info(
             "Connecting to MongoDB..."
@@ -132,10 +118,8 @@ def run_pipeline():
             MONGO_DATABASE
         )
 
-        # ====================================================
         # STEP 2
         # INGEST STUDENTS FROM MONGODB
-        # ====================================================
 
         logger.info(
             "Loading students from MongoDB..."
@@ -146,20 +130,16 @@ def run_pipeline():
             STUDENTS_COLLECTION
         )
 
-        # ====================================================
         # STEP 3
         # SAVE RAW STUDENTS
-        # ====================================================
 
         save_raw_json(
             students_documents,
             STUDENTS_RAW_FILE
         )
 
-        # ====================================================
         # STEP 4
         # LOAD RAW STUDENTS INTO PANDAS
-        # ====================================================
 
         students_df = load_json_as_dataframe(
             STUDENTS_RAW_FILE
@@ -168,10 +148,8 @@ def run_pipeline():
         print("\nRaw students data:")
         print(students_df)
 
-        # ====================================================
         # STEP 5
         # FLATTEN STUDENTS
-        # ====================================================
 
         logger.info(
             "Flattening student data..."
@@ -181,19 +159,15 @@ def run_pipeline():
             students_df
         )
 
-        # ====================================================
         # STEP 6
         # CONVERT TYPES
-        # ====================================================
 
         students_df = convert_student_data_types(
             students_df
         )
 
-        # ====================================================
         # STEP 7
         # CLEAN
-        # ====================================================
 
         logger.info(
             "Cleaning student data..."
@@ -203,10 +177,8 @@ def run_pipeline():
             students_df
         )
 
-        # ====================================================
         # STEP 8
         # VALIDATE
-        # ====================================================
 
         logger.info(
             "Validating student data..."
@@ -216,30 +188,24 @@ def run_pipeline():
             students_df
         )
 
-        # ====================================================
         # STEP 9
         # REPORT
-        # ====================================================
 
         generate_quality_report(
             students_df,
             "STUDENTS"
         )
 
-        # ====================================================
         # STEP 10
         # SAVE STUDENTS CSV
-        # ====================================================
 
         save_to_csv(
             students_df,
             STUDENTS_OUTPUT
         )
 
-        # ====================================================
         # STEP 11
         # SAVE STUDENTS SQLITE
-        # ====================================================
 
         save_to_sqlite(
             students_df,
@@ -247,9 +213,7 @@ def run_pipeline():
             "students"
         )
 
-        # ====================================================
         # COURSES
-        # ====================================================
 
         logger.info(
             "Loading courses from MongoDB..."
@@ -260,18 +224,14 @@ def run_pipeline():
             COURSE_COLLECTION
         )
 
-        # ====================================================
         # SAVE RAW COURSES
-        # ====================================================
 
         save_raw_json(
             courses_documents,
             COURSES_RAW_FILE
         )
 
-        # ====================================================
         # LOAD RAW COURSES
-        # ====================================================
 
         courses_df = load_json_as_dataframe(
             COURSES_RAW_FILE
@@ -280,9 +240,7 @@ def run_pipeline():
         print("\nRaw courses data:")
         print(courses_df)
 
-        # ====================================================
         # CLEAN COURSES
-        # ====================================================
 
         logger.info(
             "Cleaning course data..."
@@ -292,9 +250,7 @@ def run_pipeline():
             courses_df
         )
 
-        # ====================================================
         # VALIDATE COURSES
-        # ====================================================
 
         logger.info(
             "Validating course data..."
@@ -304,27 +260,21 @@ def run_pipeline():
             courses_df
         )
 
-        # ====================================================
         # COURSE REPORT
-        # ====================================================
 
         generate_quality_report(
             courses_df,
             "COURSES"
         )
 
-        # ====================================================
         # SAVE COURSES CSV
-        # ====================================================
 
         save_to_csv(
             courses_df,
             COURSES_OUTPUT
         )
 
-        # ====================================================
         # SAVE COURSES SQLITE
-        # ====================================================
 
         save_to_sqlite(
             courses_df,
@@ -332,9 +282,7 @@ def run_pipeline():
             "courses"
         )
 
-        # ====================================================
         # SUCCESS
-        # ====================================================
 
         logger.info("=" * 60)
         logger.info(
@@ -362,9 +310,7 @@ def run_pipeline():
             )
 
 
-# ============================================================
 # Entry Point
-# ============================================================
 
 if __name__ == "__main__":
     run_pipeline()
